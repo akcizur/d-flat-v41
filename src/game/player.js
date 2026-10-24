@@ -47,7 +47,8 @@ export function createPlayerController({ camera, world, settings, onFloorChange 
     player.x = x;
     player.z = z;
     player.elevation = support.height;
-    player.onGround = player.jumpHeight <= 0.001;
+    // Jumping starts with a tiny positive height; only a true zero means grounded.
+    player.onGround = player.jumpHeight <= 0;
     return true;
   }
 
@@ -58,6 +59,11 @@ export function createPlayerController({ camera, world, settings, onFloorChange 
 
   function jump() {
     if (!player.onGround || player.jumpHeight > 0.001) return;
+    // The stairwell is a compact vertical shaft with overlapping flights and
+    // landings; block jumping inside that core to avoid clipping through them.
+    const core = world.coreOpening;
+    if (core && player.x > core.minX && player.x < core.maxX &&
+        player.z > core.minZ && player.z < core.maxZ) return;
     player.jumpVelocity = jumpSpeed;
     player.jumpHeight = 0.001;
     player.onGround = false;
