@@ -3,13 +3,9 @@ import assert from "node:assert/strict";
 import { createWorld } from "../src/game/world.js";
 
 class FakeBoxGeometry {
-  constructor(width, height, depth) {
-    this.parameters = { width, height, depth };
-  }
+  constructor(width, height, depth) { this.parameters = { width, height, depth }; }
 }
-class FakeMaterial {
-  constructor(options) { Object.assign(this, options); }
-}
+class FakeMaterial { constructor(options) { Object.assign(this, options); } }
 class FakeMesh {
   constructor(geometry, material) {
     this.geometry = geometry;
@@ -24,12 +20,17 @@ function makeWorld() {
   return { world: createWorld(THREE, scene), scene };
 }
 
-test("world keeps the eight-floor panel building and creates real stair components", () => {
+test("world is a compact three-storey block with four empty rooms per floor", () => {
   const { world, scene } = makeWorld();
-  assert.equal(world.floorCount, 8);
+  assert.equal(world.floorCount, 3);
   assert.equal(world.floorHeight, 2.8);
-  assert.equal(scene.children.filter(mesh => mesh.name === "Podlaží / chodba").length, 7);
+  assert.equal(world.roomsPerFloor, 4);
+  assert.equal(world.building.width, 18);
+  assert.equal(world.building.depth, 12);
+  assert.equal(scene.children.filter(mesh => mesh.name === "Podlaha / přední trakt").length, 2);
   assert.ok(scene.children.some(mesh => mesh.name === "Výtah / levá šachta"));
+  assert.ok(scene.children.some(mesh => mesh.name === "Příčka / levá část"));
+  assert.ok(scene.children.some(mesh => mesh.name === "Příčka / pravá část"));
   assert.ok(scene.children.some(mesh => mesh.name === "Schodiště / dolní boční zídka"));
   assert.ok(scene.children.some(mesh => mesh.name === "Schodiště / horní boční zídka"));
 });
@@ -42,14 +43,14 @@ test("stair treads are thin horizontal surfaces, not solid wedge blocks", () => 
   assert.ok(riser, "expected a separate vertical riser");
   assert.ok(tread.geometry.parameters.height < 0.1);
   assert.ok(riser.geometry.parameters.height < 0.2);
-  assert.ok(riser.geometry.parameters.depth > 1);
+  assert.ok(riser.geometry.parameters.depth > 0.9);
 });
 
 test("support height rises one step at a time along the lower flight", () => {
   const { world } = makeWorld();
   let previous = 0;
-  for (const x of [-3.1, -2.8, -2.5, -2.2, -1.9, -1.6, -1.3, -1.0]) {
-    const support = world.getSupport(x, -25.1, previous);
+  for (const x of [-1.7, -1.35, -1.0, -0.65, -0.3, 0.05, 0.4, 0.75]) {
+    const support = world.getSupport(x, -25.5, previous);
     assert.ok(support, `expected support at x=${x}`);
     assert.ok(support.height >= previous, "walking uphill must not lower the player");
     assert.ok(support.height - previous <= 0.23, "one movement step must not jump multiple risers");
@@ -58,16 +59,14 @@ test("support height rises one step at a time along the lower flight", () => {
   assert.ok(Math.abs(previous - 1.4) < 1e-9);
 });
 
-test("stair landing connects to the upper flight and next corridor floor", () => {
+test("landing connects the two stair flights and the upper corridor", () => {
   const { world } = makeWorld();
-  const landing = world.getSupport(-0.16, -24.1, 1.4);
+  const landing = world.getSupport(1.65, -24.3, 1.4);
   assert.equal(landing?.kind, "landing");
   assert.ok(Math.abs(landing.height - 1.4) < 1e-9);
 
-  // Walk down the x-axis in tread-sized increments so each step is reached
-  // naturally instead of asking the support solver to teleport across the flight.
   let upperHeight = 1.4;
-  for (const x of [-0.95, -1.25, -1.55, -1.85, -2.15, -2.45, -2.75, -3.05]) {
+  for (const x of [0.65, 0.3, -0.05, -0.4, -0.75, -1.1, -1.45, -1.7]) {
     const upperStep = world.getSupport(x, -23.1, upperHeight);
     assert.equal(upperStep?.kind, "stair");
     assert.ok(upperStep.height >= upperHeight);
@@ -76,26 +75,25 @@ test("stair landing connects to the upper flight and next corridor floor", () =>
   }
   assert.ok(Math.abs(upperHeight - 2.8) < 1e-9);
 
-  const exitLanding = world.getSupport(-3.5, -23.1, 2.8);
+  const exitLanding = world.getSupport(-2.15, -23.1, 2.8);
   assert.equal(exitLanding?.kind, "landing");
   assert.ok(Math.abs(exitLanding.height - 2.8) < 1e-9);
 
-  const corridor = world.getSupport(-4.1, -23.1, 2.8);
+  const corridor = world.getSupport(-2.8, -23.1, 2.8);
   assert.equal(corridor?.kind, "floor");
   assert.ok(Math.abs(corridor.height - 2.8) < 1e-9);
 });
 
-test("upper floors cannot be treated as solid support inside the open stairwell void", () => {
+test("upper floors remain unsupported inside the open stairwell void", () => {
   const { world } = makeWorld();
-  assert.equal(world.getSupport(0, -24.1, 2.8), null);
-  assert.equal(world.getSupport(0, -24.1, 5.6), null);
+  assert.equal(world.getSupport(0, -24.3, 2.8), null);
+  assert.equal(world.getSupport(0, -24.3, 5.6), null);
 });
 
-test("world collision bounds remain finite and ordered", () => {
+test("world collision bounds are finite and ordered", () => {
   const { world } = makeWorld();
-  const colliders = world.colliders;
-  assert.ok(colliders.length > 30);
-  for (const collider of colliders) {
+  assert.ok(world.colliders.length > 30);
+  for (const collider of world.colliders) {
     for (const key of ["minX", "maxX", "minY", "maxY", "minZ", "maxZ"]) {
       assert.ok(Number.isFinite(collider[key]), `expected finite ${key}`);
     }
