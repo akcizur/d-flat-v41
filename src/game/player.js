@@ -28,8 +28,12 @@ export function createPlayerController({ camera, world, settings, onFloorChange 
   let isRunning = false;
 
   function canOccupy(x, z) {
+    const feetY = player.elevation + player.jumpHeight;
+    const headY = feetY + 1.85;
     for (const collider of world.colliders) {
-      const verticalOverlap = collider.maxY > player.elevation + 0.04 && collider.minY < player.elevation + 1.85;
+      // Use the airborne height too, otherwise a jumping player can pass through
+      // window panels and stairwell walls that should intersect the body.
+      const verticalOverlap = collider.maxY > feetY + 0.04 && collider.minY < headY;
       if (verticalOverlap && x + radius > collider.minX && x - radius < collider.maxX &&
           z + radius > collider.minZ && z - radius < collider.maxZ) return false;
     }
