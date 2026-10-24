@@ -76,7 +76,11 @@ test("stair landing connects to the upper flight and next corridor floor", () =>
   }
   assert.ok(Math.abs(upperHeight - 2.8) < 1e-9);
 
-  const corridor = world.getSupport(-3.25, -22.2, 2.8);
+  const exitLanding = world.getSupport(-3.5, -23.1, 2.8);
+  assert.equal(exitLanding?.kind, "landing");
+  assert.ok(Math.abs(exitLanding.height - 2.8) < 1e-9);
+
+  const corridor = world.getSupport(-4.1, -23.1, 2.8);
   assert.equal(corridor?.kind, "floor");
   assert.ok(Math.abs(corridor.height - 2.8) < 1e-9);
 });
