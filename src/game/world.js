@@ -92,8 +92,6 @@ export function createWorld(THREE, scene) {
   for (let floor = 0; floor < floorCount; floor++) addFloorSlab(floor);
 
   // Exterior end walls. The front and rear are built from panels around windows.
-  box("Zadní obvodová stěna", 0, height / 2, rearWallZ,
-    building.width, height, building.wall, M.concrete, { collider: true });
   box("Levý štít", leftX + building.wall / 2, height / 2, building.z,
     building.wall, height, building.depth, M.concrete, { collider: true });
   box("Pravý štít", rightX - building.wall / 2, height / 2, building.z,
@@ -380,7 +378,7 @@ export function createWorld(THREE, scene) {
   }
 
   return {
-    colliders, meshes, floorHeight, floorCount, coreOpening, building, elevator, getSupport,
+    colliders, meshes, floorHeight, floorCount, roomsPerFloor: 4, coreOpening, building, elevator, getSupport,
     containsElevatorApproach(x, z) {
       return Math.hypot(x - elevator.x, z - elevator.approachZ) < 1.8;
     }
