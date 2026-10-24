@@ -22,10 +22,14 @@ try {
 } catch (error) {
   console.warn("Settings could not be read; defaults will be used.", error);
 }
-settings.pixelScale = Number(settings.pixelScale);
-settings.fov = Number(settings.fov);
-settings.mouseSensitivity = Number(settings.mouseSensitivity);
-settings.walkSpeed = Number(settings.walkSpeed);
+const numericSetting = (value, fallback, min, max) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
+};
+settings.pixelScale = numericSetting(settings.pixelScale, defaults.pixelScale, 1.5, 5);
+settings.fov = numericSetting(settings.fov, defaults.fov, 55, 95);
+settings.mouseSensitivity = numericSetting(settings.mouseSensitivity, defaults.mouseSensitivity, 0.4, 2.2);
+settings.walkSpeed = numericSetting(settings.walkSpeed, defaults.walkSpeed, 2, 5.5);
 settings.showFps = Boolean(settings.showFps);
 
 const state = { started: false, paused: false, settingsReturn: "start", toastTimer: 0 };
