@@ -161,17 +161,57 @@ export function createWorld(THREE, scene) {
     addFacadeFloor(floor, rearWallZ, false);
   }
 
-  // Empty simple rooms: one room at each end of each wing, four per floor.
-  // Longitudinal partitions have door-sized gaps opening onto the central hall.
-  const roomWallHeight = 2.5;
+  // Two mirrored apartments on each floor, each with a real hallway and five
+  // distinct rooms: living room, kitchen, bedroom, bathroom and WC.
+  // Every doorway is a true gap in a collidable wall, not a painted-on detail.
+  const roomWallHeight = 2.45;
   const roomWallThickness = 0.16;
-  const roomDoorWidth = 1.1;
-  const roomDoorCenters = [-18.8, -25.5];
+  const roomDoorWidth = 0.82;
+  const apartmentDoorWidth = 0.98;
+  const doorHeight = 2.05;
+  const hallLeft = -3.2;
+  const hallRight = 3.2;
+  const apartmentLeftWall = -5.35;
+  const apartmentRightWall = 5.35;
+  const roomFrontZ = frontZ - building.wall;
+  const roomRearZ = rearZ + building.wall;
+  const roomLeft = leftX + building.wall;
+  const roomRight = rightX - building.wall;
+  const leftRoomMaxX = apartmentLeftWall - roomWallThickness / 2;
+  const rightRoomMinX = apartmentRightWall + roomWallThickness / 2;
+  const roomTypes = [
+    { type: "Obývací pokoj", depth: 3.8 },
+    { type: "Kuchyň", depth: 2.2 },
+    { type: "Ložnice", depth: 2.8 },
+    { type: "Koupelna", depth: 1.5 },
+    { type: "WC", depth: 1.22 }
+  ];
+  const roomZones = [];
+  let zoneFront = roomFrontZ;
+  for (const definition of roomTypes) {
+    const zoneRear = zoneFront - definition.depth;
+    roomZones.push({
+      type: definition.type,
+      minZ: zoneRear,
+      maxZ: zoneFront,
+      centerZ: (zoneRear + zoneFront) / 2
+    });
+    zoneFront = zoneRear;
+  }
+  // Correct the last edge to the interior face of the rear wall to avoid tiny
+  // floating-point gaps between the last room and the facade.
+  roomZones[roomZones.length - 1].minZ = roomRearZ;
+  roomZones[roomZones.length - 1].centerZ =
+    (roomZones[roomZones.length - 1].minZ + roomZones[roomZones.length - 1].maxZ) / 2;
 
-  function addWallAlongZ(name, x, floorY, zMin, zMax, doorCenters) {
+  const rooms = [];
+
+  function addWallAlongZ(name, x, floorY, zMin, zMax, doorCenters, doorWidth = roomDoorWidth) {
     const gaps = doorCenters
-      .map(center => ({ min: center - roomDoorWidth / 2, max: center + roomDoorWidth / 2 }))
-      .sort((a, b) => a.min - b.min);
+      .map(center => ({ min: center - doorWidth / 2, max: center + doorWidth / 2 }))
+      .sort((a, b) => a.min - b.min)
+      .map(gap => ({ min: Math.max(zMin, gap.min), max: Math.min(zMax, gap.max) }))
+      .filter(gap => gap.max > gap.min);
     let cursor = zMin;
     for (const gap of gaps) {
       if (gap.min > cursor) {
@@ -179,9 +219,14 @@ export function createWorld(THREE, scene) {
         box(name, x, floorY + roomWallHeight / 2, (cursor + gap.min) / 2,
           roomWallThickness, roomWallHeight, depth, M.plaster, { collider: true });
       }
-      box("Místnost / nadpraží", x, floorY + 2.55, (gap.min + gap.max) / 2,
-        roomWallThickness, 0.4, gap.max - gap.min, M.plaster);
-      cursor = gap.max;
+      const gapCenter = (gap.min + gap.max) / 2;
+      box(name + " / nadpraží", x, floorY + (doorHeight + roomWallHeight) / 2, gapCenter,
+        roomWallThickness, roomWallHeight - doorHeight, gap.max - gap.min, M.plaster);
+      for (const jambZ of [gap.min, gap.max]) {
+        box(name + " / zárubeň", x, floorY + doorHeight / 2, jambZ,
+          roomWallThickness + 0.035, doorHeight, 0.045, M.dark);
+      }
+      cursor = Math.max(cursor, gap.max);
     }
     if (cursor < zMax) {
       box(name, x, floorY + roomWallHeight / 2, (cursor + zMax) / 2,
@@ -189,37 +234,60 @@ export function createWorld(THREE, scene) {
     }
   }
 
-  function addWallAlongX(name, z, floorY, xMin, xMax, doorCenter) {
-    const gapMin = doorCenter - roomDoorWidth / 2;
-    const gapMax = doorCenter + roomDoorWidth / 2;
-    if (gapMin > xMin) {
-      box(name, (xMin + gapMin) / 2, floorY + roomWallHeight / 2, z,
-        gapMin - xMin, roomWallHeight, roomWallThickness, M.plaster, { collider: true });
-    }
-    box("Místnost / nadpraží", (gapMin + gapMax) / 2, floorY + 2.55, z,
-      gapMax - gapMin, 0.4, roomWallThickness, M.plaster);
-    if (gapMax < xMax) {
-      box(name, (gapMax + xMax) / 2, floorY + roomWallHeight / 2, z,
-        xMax - gapMax, roomWallHeight, roomWallThickness, M.plaster, { collider: true });
-    }
+  function addRoomPartition(name, z, floorY, xMin, xMax) {
+    if (xMax - xMin <= roomWallThickness) return;
+    box(name, (xMin + xMax) / 2, floorY + roomWallHeight / 2, z,
+      xMax - xMin, roomWallHeight, roomWallThickness, M.plaster, { collider: true });
   }
 
-  const roomLeft = leftX + building.wall + 0.10;
-  const roomRight = rightX - building.wall - 0.10;
-  const hallLeft = -3.2;
-  const hallRight = 3.2;
-  const roomDividerZ = -21.2;
   for (let floor = 0; floor < floorCount; floor++) {
     const floorY = floor * floorHeight;
-    addWallAlongZ("Vnitřní stěna / levé místnosti", hallLeft, floorY,
-      rearZ + building.wall, frontZ - building.wall, roomDoorCenters);
-    addWallAlongZ("Vnitřní stěna / pravé místnosti", hallRight, floorY,
-      rearZ + building.wall, frontZ - building.wall, roomDoorCenters);
+    // The shared stair/elevator hall connects to each private apartment hall.
+    addWallAlongZ("Společná chodba / vstup do bytu A", hallLeft, floorY,
+      roomRearZ, roomFrontZ, [-19.1], apartmentDoorWidth);
+    addWallAlongZ("Společná chodba / vstup do bytu B", hallRight, floorY,
+      roomRearZ, roomFrontZ, [-19.1], apartmentDoorWidth);
 
-    addWallAlongX("Příčka / levá část", roomDividerZ, floorY,
-      roomLeft, hallLeft, -6.0);
-    addWallAlongX("Příčka / pravá část", roomDividerZ, floorY,
-      hallRight, roomRight, 6.0);
+    // Longitudinal walls keep each apartment corridor separate from its rooms.
+    addWallAlongZ("Byt A / stěna chodby", apartmentLeftWall, floorY,
+      roomRearZ, roomFrontZ, roomZones.map(room => room.centerZ), roomDoorWidth);
+    addWallAlongZ("Byt B / stěna chodby", apartmentRightWall, floorY,
+      roomRearZ, roomFrontZ, roomZones.map(room => room.centerZ), roomDoorWidth);
+
+    // Cross partitions divide the room wing into actual rooms. The two
+    // apartments are mirrored across the central corridor.
+    for (let zoneIndex = 0; zoneIndex < roomZones.length - 1; zoneIndex++) {
+      const zone = roomZones[zoneIndex];
+      const leftNext = roomZones[zoneIndex + 1];
+      const partitionZ = (zone.minZ + leftNext.maxZ) / 2;
+      addRoomPartition("Byt A / příčka " + zone.type + "–" + leftNext.type,
+        partitionZ, floorY, roomLeft, leftRoomMaxX);
+      addRoomPartition("Byt B / příčka " + zone.type + "–" + leftNext.type,
+        partitionZ, floorY, rightRoomMinX, roomRight);
+    }
+
+    for (const zone of roomZones) {
+      rooms.push({
+        floor: floor + 1,
+        apartment: "A",
+        type: zone.type,
+        minX: roomLeft,
+        maxX: leftRoomMaxX,
+        minZ: zone.minZ,
+        maxZ: zone.maxZ,
+        area: (leftRoomMaxX - roomLeft) * (zone.maxZ - zone.minZ)
+      });
+      rooms.push({
+        floor: floor + 1,
+        apartment: "B",
+        type: zone.type,
+        minX: rightRoomMinX,
+        maxX: roomRight,
+        minZ: zone.minZ,
+        maxZ: zone.maxZ,
+        area: (roomRight - rightRoomMinX) * (zone.maxZ - zone.minZ)
+      });
+    }
   }
 
   // Small three-storey stairwell, with separate treads, risers and side walls.
