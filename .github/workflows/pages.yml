@@ -19,12 +19,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run build
+          node-version: 24
+      # The repo intentionally has no committed npm lockfile, so npm ci/cache
+      # cannot work here. npm install creates the transient lock for this build.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build the static GitHub Pages renderer
+        run: npm run build:web
+        env:
+          VITE_BASE_PATH: /d-flat-v41/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
