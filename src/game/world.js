@@ -447,7 +447,7 @@ export function createWorld(THREE, scene) {
   }
 
   return {
-    colliders, meshes, floorHeight, floorCount, roomsPerFloor: 4, coreOpening, building, elevator, getSupport,
+    colliders, meshes, floorHeight, floorCount, roomsPerFloor: roomTypes.length * 2, roomsPerApartment: roomTypes.length, apartmentsPerFloor: 2, roomTypes: roomTypes.map(room => room.type), rooms, coreOpening, building, elevator, getSupport,
     containsElevatorApproach(x, z) {
       return Math.hypot(x - elevator.x, z - elevator.approachZ) < 1.8;
     }
