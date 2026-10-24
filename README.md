@@ -1,18 +1,20 @@
 # D-FLAT V41
 
-Electron desktop FPS prototype for exploring a sparse map and a Czech/Slovak socialist-era panelák inspired by the original DFLAT project: https://github.com/akcizur/DFLAT
+Electron desktop FPS prototype for exploring a quiet Czech/Slovak socialist-era panel building inspired by the original DFLAT project: https://github.com/akcizur/DFLAT
 
 ## Playable base scene
 
 - Electron desktop shell with an isolated, sandboxed renderer and no Node integration in the game window.
-- Three.js low-poly scene: open terrain, road, footpath and one eight-storey apartment block.
+- Compact three-storey, low-poly panel building, about 18 × 12 m, with four simple empty rooms per floor.
 - First-person keyboard movement, mouse look, sprint, jump, camera bob and pause/resume.
-- Eight-floor stairwell with switchback flights, landings and elevator shaft. Press E near the lift to advance one floor.
+- Central switchback stairs with separate treads, risers, side walls, railings and landings.
+- Small elevator with floor switching using E near the lift.
+- Sparse outdoor map: terrain, road, footpath and an entry platform.
 - Pixel-grid rendering with antialiasing disabled and no full-screen CRT/VHS post-processing.
 - Preferences persisted locally: pixel scale, field of view, mouse sensitivity, walk speed and FPS display.
 - Syntax/architecture checks, unit tests and a GitHub Actions quality workflow.
 
-The supplied OBJ was inspected as a reference asset (approximately 10 × 10 × 6 m at a 0.01 scale). The initial runtime building is generated from Three.js primitives so the project starts without downloading or configuring an external model. The supplied OBJ can be integrated later as an optional replacement asset.
+The room interiors are intentionally empty, with no furniture, to make the scene easy to navigate and extend. The runtime geometry is generated from Three.js primitives so the project can start without configuring an external model.
 
 ## Requirements
 
@@ -71,12 +73,12 @@ Click the scene after starting if the mouse is not captured. Press Esc to releas
 - electron/main.cjs: window lifecycle, external-navigation guard and secure BrowserWindow defaults.
 - electron/preload.cjs: minimal read-only desktop context.
 - src/main.js: renderer startup, HUD, inputs, settings and render loop.
-- src/game/world.js: panelák, exterior map, floor slabs, stairs, elevator and support-surface solver.
+- src/game/world.js: three-floor block, empty room partitions, facade, stairs, lift and support-surface solver.
 - src/game/player.js: movement, jump, sprint, camera look and floor tracking.
 - src/styles.css: terminal-style menus and in-game HUD.
-- tests/: player-math tests.
+- tests/: player and stair regression tests.
 - .github/workflows/quality.yml: checks on pushes and pull requests.
 
 ## Scope
 
-This is a playable base scene, not a finished narrative game. It intentionally contains no apartment furniture, quest system, audio library or online service. Useful next steps are sound and footsteps, authored materials, player-body/third-person mode, a dedicated collision test pass and optional OBJ/GLB import.
+This is a compact playable base scene, not a finished narrative game. It intentionally contains no apartment furniture, quest system, audio library or online service. Useful next steps are sound and footsteps, authored materials, player-body/third-person mode and further collision testing.
