@@ -188,6 +188,13 @@ export function createWorld(THREE, scene) {
       baseY + floorHeight / 2 - 0.08, stair.landingZ,
       stair.landingWidth, 0.16, stair.landingDepth, M.concrete);
 
+    // The upper flight exits sideways onto a real top landing. Without this
+    // bridge the stair-support solver hits the open core boundary before the
+    // player can reach the adjacent corridor slab.
+    box("Schodiště / horní výstupní podesta",
+      stair.lowX - 0.35, baseY + floorHeight - 0.075, stair.secondZ,
+      1.0, 0.16, 1.25, M.concrete);
+
     // Continuous handrails follow each flight and sit just above the side parapets.
     const railLength = Math.hypot(stair.highX - stair.lowX, floorHeight / 2);
     const lowerRailY = baseY + floorHeight / 4 + sideWallHeight + 0.10;
@@ -247,6 +254,9 @@ export function createWorld(THREE, scene) {
         candidates.push({ height: baseY + floorHeight / 2 + progress * stair.stepRise, kind: "stair" });
       }
       if (inLanding) candidates.push({ height: baseY + floorHeight / 2, kind: "landing" });
+      const inUpperExit = x >= stair.lowX - 0.85 && x <= stair.lowX + 0.05 &&
+        z >= stair.secondZ - halfTread - 0.10 && z <= stair.secondZ + halfTread + 0.10;
+      if (inUpperExit) candidates.push({ height: baseY + floorHeight, kind: "landing" });
     }
     candidates.sort((a, b) => Math.abs(a.height - fromElevation) - Math.abs(b.height - fromElevation));
     const stairCandidate = candidates.find(item => Math.abs(item.height - fromElevation) <= stair.stepRise + 0.055);
