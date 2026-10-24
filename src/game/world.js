@@ -84,9 +84,10 @@ export function createWorld(THREE, scene) {
       building.width + 0.24, 0.16, fullFront - coreOpening.maxZ, M.concrete);
     box("Podlaha / zadní trakt", 0, y, (fullRear + coreOpening.minZ) / 2,
       building.width + 0.24, 0.16, coreOpening.minZ - fullRear, M.concrete);
-    box("Podlaha / levý bok schodiště", (fullLeft + coreOpening.minX) / 2, y, building.z,
+    const coreCenterZ = (coreOpening.minZ + coreOpening.maxZ) / 2;
+    box("Podlaha / levý bok schodiště", (fullLeft + coreOpening.minX) / 2, y, coreCenterZ,
       coreOpening.minX - fullLeft, 0.16, coreOpening.maxZ - coreOpening.minZ, M.concrete);
-    box("Podlaha / pravý bok schodiště", (coreOpening.maxX + fullRight) / 2, y, building.z,
+    box("Podlaha / pravý bok schodiště", (coreOpening.maxX + fullRight) / 2, y, coreCenterZ,
       fullRight - coreOpening.maxX, 0.16, coreOpening.maxZ - coreOpening.minZ, M.concrete);
   }
   for (let floor = 0; floor < floorCount; floor++) addFloorSlab(floor);
