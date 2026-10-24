@@ -20,26 +20,52 @@ function makeWorld() {
   return { world: createWorld(THREE, scene), scene };
 }
 
-test("world is a compact three-storey block with four empty rooms per floor", () => {
+test("world has two properly divided five-room flats on each of three floors", () => {
   const { world, scene } = makeWorld();
   assert.equal(world.floorCount, 3);
   assert.equal(world.floorHeight, 2.8);
-  assert.equal(world.roomsPerFloor, 4);
+  assert.equal(world.apartmentsPerFloor, 2);
+  assert.equal(world.roomsPerApartment, 5);
+  assert.equal(world.roomsPerFloor, 10);
+  assert.equal(world.rooms.length, 30);
+  assert.deepEqual(world.roomTypes, ["Obývací pokoj", "Kuchyň", "Ložnice", "Koupelna", "WC"]);
   assert.equal(world.building.width, 18);
   assert.equal(world.building.depth, 12);
+
+  for (let floor = 1; floor <= 3; floor++) {
+    for (const apartment of ["A", "B"]) {
+      const rooms = world.rooms.filter(room => room.floor === floor && room.apartment === apartment);
+      assert.equal(rooms.length, 5, `expected five distinct rooms in flat ${apartment}, floor ${floor}`);
+      assert.deepEqual(
+        rooms.map(room => room.type).sort(),
+        ["Obývací pokoj", "Kuchyň", "Ložnice", "Koupelna", "WC"].sort()
+      );
+      for (const room of rooms) {
+        assert.ok(Number.isFinite(room.area) && room.area > 2.5, `invalid area for ${room.type}`);
+        assert.ok(room.minX < room.maxX && room.minZ < room.maxZ, `invalid bounds for ${room.type}`);
+      }
+    }
+  }
+
   assert.equal(scene.children.filter(mesh => mesh.name === "Podlaha / přední trakt").length, 2);
   const leftStairSlab = scene.children.find(mesh => mesh.name === "Podlaha / levý bok schodiště");
   const rightStairSlab = scene.children.find(mesh => mesh.name === "Podlaha / pravý bok schodiště");
   assert.ok(leftStairSlab && rightStairSlab);
   assert.ok(Math.abs(leftStairSlab.position.z + 23.9) < 1e-9);
   assert.ok(Math.abs(rightStairSlab.position.z + 23.9) < 1e-9);
+
   assert.ok(scene.children.some(mesh => mesh.name === "Výtah / levá šachta"));
-  assert.ok(scene.children.some(mesh => mesh.name === "Příčka / levá část"));
-  assert.ok(scene.children.some(mesh => mesh.name === "Příčka / pravá část"));
+  assert.ok(scene.children.some(mesh => mesh.name === "Byt A / příčka Obývací pokoj–Kuchyň"));
+  assert.ok(scene.children.some(mesh => mesh.name === "Byt B / příčka Obývací pokoj–Kuchyň"));
+  assert.ok(scene.children.some(mesh => mesh.name === "Byt A / stěna chodby / zárubeň"));
+  assert.ok(scene.children.some(mesh => mesh.name === "Byt B / stěna chodby / zárubeň"));
+  assert.ok(scene.children.some(mesh => mesh.name === "Společná chodba / vstup do bytu A / zárubeň"));
+  assert.ok(scene.children.some(mesh => mesh.name === "Společná chodba / vstup do bytu B / zárubeň"));
+  assert.equal(scene.children.filter(mesh => mesh.name === "Byt A / stěna chodby / zárubeň").length, 30);
+  assert.equal(scene.children.filter(mesh => mesh.name === "Byt B / stěna chodby / zárubeň").length, 30);
   assert.ok(scene.children.some(mesh => mesh.name === "Schodiště / dolní boční zídka"));
   assert.ok(scene.children.some(mesh => mesh.name === "Schodiště / horní boční zídka"));
 });
-
 test("stair treads are thin horizontal surfaces, not solid wedge blocks", () => {
   const { scene } = makeWorld();
   const tread = scene.children.find(mesh => mesh.name === "Schodiště / dolní nášlap");
