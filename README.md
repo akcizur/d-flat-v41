@@ -5,16 +5,16 @@ Electron desktop FPS prototype for exploring a quiet Czech/Slovak socialist-era 
 ## Playable base scene
 
 - Electron desktop shell with an isolated, sandboxed renderer and no Node integration in the game window.
-- Compact three-storey, low-poly panel building, about 18 × 12 m, with four simple empty rooms per floor.
+- Compact three-storey, low-poly panel building, about 18 × 12 m, with two mirrored apartments per floor. Each apartment has a living room, kitchen, bedroom, bathroom, WC and its own corridor: 30 rooms total.
 - First-person keyboard movement, mouse look, sprint, jump, camera bob and pause/resume.
-- Central switchback stairs with separate treads, risers, side walls, railings and landings.
+- Shared stair/elevator hall, distinct apartment entrances, corridor doors to every room, collidable room partitions and visible door frames.\n- Central switchback stairs with separate treads, risers, side walls, railings and landings.
 - Small elevator with floor switching using E near the lift.
 - Sparse outdoor map: terrain, road, footpath and an entry platform.
 - Pixel-grid rendering with antialiasing disabled and no full-screen CRT/VHS post-processing.
 - Preferences persisted locally: pixel scale, field of view, mouse sensitivity, walk speed and FPS display.
 - Syntax/architecture checks, unit tests and a GitHub Actions quality workflow.
 
-The room interiors are intentionally empty, with no furniture, to make the scene easy to navigate and extend. The runtime geometry is generated from Three.js primitives so the project can start without configuring an external model.
+The apartment interiors are intentionally unfurnished, but their layout is divided into proper rooms. Two mirrored flats per floor use a simple 2+1-style plan with a living room, kitchen, bedroom, bathroom and WC, entered from a private corridor off the shared stair/elevator hall. Doorways are real gaps in the collidable partitions. The runtime geometry is generated from Three.js primitives so the project can start without configuring an external model.
 
 ## Requirements
 
@@ -73,7 +73,7 @@ Click the scene after starting if the mouse is not captured. Press Esc to releas
 - electron/main.cjs: window lifecycle, external-navigation guard and secure BrowserWindow defaults.
 - electron/preload.cjs: minimal read-only desktop context.
 - src/main.js: renderer startup, HUD, inputs, settings and render loop.
-- src/game/world.js: three-floor block, empty room partitions, facade, stairs, lift and support-surface solver.
+- src/game/world.js: three-floor block, two five-room flats per floor, facade, stairs, lift and support-surface solver.
 - src/game/player.js: movement, jump, sprint, camera look and floor tracking.
 - src/styles.css: terminal-style menus and in-game HUD.
 - tests/: player and stair regression tests.
