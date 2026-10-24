@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0c0d0e" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws://127.0.0.1:5173 http://127.0.0.1:5173; object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <title>D-FLAT V41 — Main Building</title>
+</head>
+<body>
+  <div id="game">
+    <canvas id="game-canvas" aria-label="3D herní scéna"></canvas>
+    <div id="hud" class="hud is-hidden" aria-live="off">
+      <div class="hud-top">
+        <div class="brand">D-FLAT<span>V41 / HLAVNÍ BUDOVA</span></div>
+        <div class="hud-readout"><span id="floor-label">PŘÍZEMÍ</span><i></i><span id="fps-label">60 FPS</span></div>
+      </div>
+      <div class="location-readout"><span class="eyebrow">LOKACE</span><strong id="location-label">PŘED HLAVNÍ BUDOVOU</strong></div>
+      <div class="crosshair" aria-hidden="true"><i></i></div>
+      <div id="interaction-hint" class="interaction-hint" hidden><kbd>E</kbd><span>POUŽÍT VÝTAH</span></div>
+      <div class="hud-bottom"><span>WASD / POHYB <b>·</b> SHIFT / BĚH <b>·</b> SPACE / SKOK</span><span>MYŠ / ROZHLÉDNUTÍ <b>·</b> ESC / PAUZA</span></div>
+      <button id="pause-button" class="icon-button pause-button" aria-label="Pozastavit hru" title="Pauza">Ⅱ</button>
+    </div>
+    <section id="start-screen" class="screen-layer">
+      <div class="terminal-window">
+        <header class="terminal-top"><div class="brand">D-FLAT<span>V41 / REALITY TERMINAL</span></div><div class="system-status"><i></i> SYSTÉM PŘIPRAVEN</div></header>
+        <div class="terminal-content">
+          <div class="building-art" aria-hidden="true">
+            <svg viewBox="0 0 320 250" fill="none">
+              <path d="M73 40 205 15 263 47 131 73 73 40Z" fill="#c8c5b9" fill-opacity=".16" stroke="currentColor" stroke-opacity=".7"/>
+              <path d="M73 40v151l58 34V73L73 40Z" fill="#b9b5a7" fill-opacity=".12" stroke="currentColor" stroke-opacity=".8"/>
+              <path d="M131 73v152l132-28V47L131 73Z" fill="#c8c5b9" fill-opacity=".09" stroke="currentColor" stroke-opacity=".8"/>
+              <path d="m131 92 132-28M131 112l132-28M131 132l132-28M131 152l132-28M131 172l132-28M131 192l132-28M131 212l132-28" stroke="currentColor" stroke-opacity=".5"/>
+              <path d="M151 87h19v12h-19zM192 78h19v12h-19zM233 69h19v12h-19zM151 108h19v12h-19zM192 99h19v12h-19zM233 90h19v12h-19zM151 129h19v12h-19zM192 120h19v12h-19zM233 111h19v12h-19zM151 150h19v12h-19zM192 141h19v12h-19zM233 132h19v12h-19zM151 171h19v12h-19zM192 162h19v12h-19zM233 153h19v12h-19z" fill="#d7ad70" fill-opacity=".42"/>
+              <path d="M48 223h239M64 233h207M81 243h174" stroke="currentColor" stroke-opacity=".45"/><circle cx="276" cy="26" r="3" fill="#d8c16f"/>
+            </svg>
+            <div class="art-caption">ARCHITEKTURA / 1980 / CS</div>
+          </div>
+          <div class="menu-column">
+            <div class="eyebrow">VOLNÁ MAPA / BUILD 0.1</div>
+            <h1>HLAVNÍ<br />BUDOVA<span>_</span></h1>
+            <p class="menu-copy">Panelový dům. Prázdná mapa. Volný pohyb v prostoru inspirovaném Československem kolem roku 1980.</p>
+            <button id="start-button" class="primary-command"><span>›</span> ZAČÍT HRU <kbd>ENTER</kbd></button>
+            <button id="open-settings" class="secondary-command">NASTAVENÍ GRAFIKY A OVLÁDÁNÍ</button>
+            <div class="control-list"><span>WASD <b>POHYB</b></span><span>SHIFT <b>BĚH</b></span><span>SPACE <b>SKOK</b></span><span>MYŠ <b>ROZHLÉDNUTÍ</b></span><span>E <b>VÝTAH</b></span><span>ESC <b>PAUZA</b></span></div>
+          </div>
+        </div>
+        <footer class="terminal-footer"><span>DFLAT SYSTEM / V41</span><span>LOW-POLY RENDER / NO AA</span><span id="desktop-version">ELECTRON DESKTOP</span></footer>
+      </div>
+    </section>
+    <section id="pause-screen" class="screen-layer is-hidden">
+      <div class="pause-panel"><div class="eyebrow">SIMULACE POZASTAVENA</div><h2>PAUZA<span>_</span></h2><p>Svět čeká na další krok.</p>
+        <button id="resume-button" class="primary-command"><span>›</span> POKRAČOVAT <kbd>ESC</kbd></button>
+        <button id="pause-settings" class="secondary-command">NASTAVENÍ</button><button id="restart-button" class="secondary-command">VRÁTIT SE NA ZAČÁTEK MAPY</button>
+      </div>
+    </section>
+    <section id="settings-screen" class="screen-layer is-hidden">
+      <div class="settings-panel">
+        <header class="settings-head"><div><div class="eyebrow">D-FLAT / PREFERENCE</div><h2>NASTAVENÍ<span>_</span></h2></div><button id="close-settings" class="icon-button" aria-label="Zavřít nastavení">×</button></header>
+        <label class="setting-row" for="pixel-scale"><span><strong>Pixelizace</strong><small>Vyšší hodnota = hrubší rozlišení</small></span><output id="pixel-output">3.2×</output><input id="pixel-scale" type="range" min="1.5" max="5" step="0.1" value="3.2" /></label>
+        <label class="setting-row" for="field-of-view"><span><strong>Zorné pole</strong><small>Šířka pohledu kamery</small></span><output id="fov-output">72°</output><input id="field-of-view" type="range" min="55" max="95" step="1" value="72" /></label>
+        <label class="setting-row" for="mouse-sensitivity"><span><strong>Citlivost myši</strong><small>Rychlost rozhlížení</small></span><output id="sensitivity-output">1.0×</output><input id="mouse-sensitivity" type="range" min="0.4" max="2.2" step="0.1" value="1" /></label>
+        <label class="setting-row" for="walk-speed"><span><strong>Rychlost chůze</strong><small>Běh drží SHIFT</small></span><output id="speed-output">3.6 m/s</output><input id="walk-speed" type="range" min="2" max="5.5" step="0.1" value="3.6" /></label>
+        <label class="setting-row toggle-row" for="show-fps"><span><strong>Zobrazit FPS</strong><small>Diagnostika výkonu</small></span><input id="show-fps" type="checkbox" /></label>
+        <div class="settings-actions"><button id="reset-settings" class="secondary-command">OBNOVIT VÝCHOZÍ</button><button id="save-settings" class="primary-command"><span>›</span> HOTOVO</button></div>
+        <p class="settings-footnote">Vykreslování: Three.js · WebGL · antialiasing vypnutý · bez post-processingu.</p>
+      </div>
+    </section>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="error-screen" class="error-screen is-hidden" role="alert"><strong>3D engine nelze spustit.</strong><span id="error-message">Zkontrolujte podporu WebGL a ovladače grafiky.</span><button id="retry-button" class="secondary-command">ZKUSIT ZNOVU</button></div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
