@@ -64,9 +64,17 @@ test("stair landing connects to the upper flight and next corridor floor", () =>
   assert.equal(landing?.kind, "landing");
   assert.ok(Math.abs(landing.height - 1.4) < 1e-9);
 
-  const upper = world.getSupport(-3.1, -23.1, 1.4);
-  assert.equal(upper?.kind, "stair");
-  assert.ok(Math.abs(upper.height - 2.8) < 1e-9);
+  // Walk down the x-axis in tread-sized increments so each step is reached
+  // naturally instead of asking the support solver to teleport across the flight.
+  let upperHeight = 1.4;
+  for (const x of [-0.95, -1.25, -1.55, -1.85, -2.15, -2.45, -2.75, -3.05]) {
+    const upperStep = world.getSupport(x, -23.1, upperHeight);
+    assert.equal(upperStep?.kind, "stair");
+    assert.ok(upperStep.height >= upperHeight);
+    assert.ok(upperStep.height - upperHeight <= 0.23);
+    upperHeight = upperStep.height;
+  }
+  assert.ok(Math.abs(upperHeight - 2.8) < 1e-9);
 
   const corridor = world.getSupport(-3.25, -22.2, 2.8);
   assert.equal(corridor?.kind, "floor");
@@ -79,7 +87,7 @@ test("upper floors cannot be treated as solid support inside the open stairwell 
   assert.equal(world.getSupport(0, -24.1, 5.6), null);
 });
 
-test("rotated collider bounding boxes remain finite and ordered", () => {
+test("world collision bounds remain finite and ordered", () => {
   const { world } = makeWorld();
   const colliders = world.colliders;
   assert.ok(colliders.length > 30);
