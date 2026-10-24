@@ -18,10 +18,12 @@ test("opposite movement inputs cancel out", () => {
   assert.deepEqual(normalizeAxes(true, true, false, false), { forward: 0, strafe: 0 });
 });
 
-test("floor index is rounded and bounded to the eight-storey block", () => {
+test("floor index is rounded and bounded to the three-storey block", () => {
   assert.equal(floorIndexFromElevation(0), 0);
-  assert.equal(floorIndexFromElevation(8.4), 3);
-  assert.equal(floorIndexFromElevation(99), 7);
+  assert.equal(floorIndexFromElevation(2.8), 1);
+  assert.equal(floorIndexFromElevation(5.6), 2);
+  assert.equal(floorIndexFromElevation(8.4), 2);
+  assert.equal(floorIndexFromElevation(99), 2);
   assert.equal(floorIndexFromElevation(-20), 0);
 });
 
@@ -33,8 +35,8 @@ function makePlayer(worldOverrides = {}) {
   const world = {
     colliders: [],
     floorHeight: 2.8,
-    floorCount: 8,
-    coreOpening: { minX: -3.8, maxX: 3.8, minZ: -26, maxZ: -22.35 },
+    floorCount: 3,
+    coreOpening: { minX: -2.25, maxX: 2.4, minZ: -26.3, maxZ: -21.5 },
     getSupport: (_x, _z, elevation) => ({ height: elevation, kind: "floor" }),
     ...worldOverrides
   };
