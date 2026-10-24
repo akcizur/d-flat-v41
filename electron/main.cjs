@@ -1,7 +1,9 @@
 const { app, BrowserWindow, shell } = require("electron");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 
 const isDev = !app.isPackaged;
+const packagedEntryUrl = pathToFileURL(path.join(__dirname, "../dist/index.html")).href;
 let mainWindow;
 
 function createWindow() {
@@ -30,7 +32,7 @@ function createWindow() {
     return { action: "deny" };
   });
   mainWindow.webContents.on("will-navigate", (event, url) => {
-    const allowed = isDev ? url.startsWith("http://127.0.0.1:5173") : url.startsWith("file://");
+    const allowed = isDev ? url.startsWith("http://127.0.0.1:5173/") : url === packagedEntryUrl;
     if (!allowed) event.preventDefault();
   });
 
