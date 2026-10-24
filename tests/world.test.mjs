@@ -28,6 +28,11 @@ test("world is a compact three-storey block with four empty rooms per floor", ()
   assert.equal(world.building.width, 18);
   assert.equal(world.building.depth, 12);
   assert.equal(scene.children.filter(mesh => mesh.name === "Podlaha / přední trakt").length, 2);
+  const leftStairSlab = scene.children.find(mesh => mesh.name === "Podlaha / levý bok schodiště");
+  const rightStairSlab = scene.children.find(mesh => mesh.name === "Podlaha / pravý bok schodiště");
+  assert.ok(leftStairSlab && rightStairSlab);
+  assert.ok(Math.abs(leftStairSlab.position.z + 23.9) < 1e-9);
+  assert.ok(Math.abs(rightStairSlab.position.z + 23.9) < 1e-9);
   assert.ok(scene.children.some(mesh => mesh.name === "Výtah / levá šachta"));
   assert.ok(scene.children.some(mesh => mesh.name === "Příčka / levá část"));
   assert.ok(scene.children.some(mesh => mesh.name === "Příčka / pravá část"));
