@@ -13,7 +13,7 @@ export function normalizeAxes(forwardKey, backwardKey, leftKey, rightKey) {
   return { forward, strafe };
 }
 
-export function floorIndexFromElevation(elevation, floorHeight = 2.8, floorCount = 8) {
+export function floorIndexFromElevation(elevation, floorHeight = 2.8, floorCount = 3) {
   return clamp(Math.round(elevation / floorHeight), 0, floorCount - 1);
 }
 
@@ -79,14 +79,18 @@ export function createPlayerController({ camera, world, settings, onFloorChange 
 
   function teleportToFloor(floor) {
     const bounded = clamp(floor, 0, world.floorCount - 1);
-    player.x = 2.45; player.z = -21.55; player.elevation = bounded * world.floorHeight;
+    const lift = world.elevator ?? { x: 1.65, approachZ: -18.35 };
+    player.x = lift.x;
+    player.z = lift.approachZ;
+    player.elevation = bounded * world.floorHeight;
     player.jumpHeight = 0; player.jumpVelocity = 0; player.onGround = true;
     player.floor = bounded; onFloorChange(bounded);
   }
 
   function interact() {
-    const elevatorDistance = Math.hypot(player.x - 2.45, player.z + 21.65);
-    if (elevatorDistance < 2.05) {
+    const lift = world.elevator ?? { x: 1.65, approachZ: -18.35 };
+    const elevatorDistance = Math.hypot(player.x - lift.x, player.z - lift.approachZ);
+    if (elevatorDistance < 1.8) {
       const next = (player.floor + 1) % world.floorCount;
       teleportToFloor(next);
       return { type: "elevator", floor: next };
