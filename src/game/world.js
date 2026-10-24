@@ -32,11 +32,17 @@ export function createWorld(THREE, scene) {
     if (options.rotationZ) mesh.rotation.z = options.rotationZ;
     scene.add(mesh);
     meshes.push(mesh);
-    if (options.collider) colliders.push({
-      minX: x - sx / 2, maxX: x + sx / 2,
-      minY: y - sy / 2, maxY: y + sy / 2,
-      minZ: z - sz / 2, maxZ: z + sz / 2
-    });
+    if (options.collider) {
+      // Store an axis-aligned bounding box of the rotated mesh, not its unrotated size.
+      const angle = options.rotationZ ?? 0;
+      const halfX = (Math.abs(Math.cos(angle)) * sx + Math.abs(Math.sin(angle)) * sy) / 2;
+      const halfY = (Math.abs(Math.sin(angle)) * sx + Math.abs(Math.cos(angle)) * sy) / 2;
+      colliders.push({
+        minX: x - halfX, maxX: x + halfX,
+        minY: y - halfY, maxY: y + halfY,
+        minZ: z - sz / 2, maxZ: z + sz / 2
+      });
+    }
     return mesh;
   }
 
@@ -138,31 +144,64 @@ export function createWorld(THREE, scene) {
 
   // Open stairwell: matching switchback flight geometry, floor openings and landings.
   const stair = { lowX: -3.2, highX: -0.8, firstZ: -25.1, secondZ: -23.1, steps: 8, stepRise: floorHeight / 16, stepRun: 0.3, treadDepth: 1.12, landingWidth: 1.30, landingDepth: 3.10, landingX: -0.16, landingZ: -24.1 };
-  const angle = Math.atan((floorHeight / 2) / (stair.highX - stair.lowX));
+  const stairAngle = Math.atan((floorHeight / 2) / (stair.highX - stair.lowX));
+  const treadThickness = 0.075;
+  const sideWallHeight = 0.84;
+  const sideWallOffset = stair.treadDepth / 2 + 0.12;
+
   for (let floor = 0; floor < floorCount - 1; floor++) {
     const baseY = floor * floorHeight;
     for (let i = 0; i < stair.steps; i++) {
-      const topA = baseY + (i + 1) * stair.stepRise;
-      box("Schodiště / dolní rameno", stair.lowX + (i + 0.5) * stair.stepRun,
-        (baseY + topA) / 2, stair.firstZ, stair.stepRun + 0.025,
-        topA - baseY, stair.treadDepth, M.panels);
-      const bottomB = baseY + floorHeight / 2;
-      const topB = bottomB + (i + 1) * stair.stepRise;
-      box("Schodiště / horní rameno", stair.highX - (i + 0.5) * stair.stepRun,
-        (bottomB + topB) / 2, stair.secondZ, stair.stepRun + 0.025,
-        topB - bottomB, stair.treadDepth, M.panels);
+      // Horizontal treads and separate vertical risers. The old version filled
+      // each step with a solid wedge-like box, which made the flight look blocked.
+      const lowerTop = baseY + (i + 1) * stair.stepRise;
+      const lowerX = stair.lowX + (i + 0.5) * stair.stepRun;
+      box("Schodiště / dolní nášlap", lowerX, lowerTop - treadThickness / 2,
+        stair.firstZ, stair.stepRun + 0.025, treadThickness, stair.treadDepth, M.panels);
+      box("Schodiště / dolní čelo", stair.lowX + (i + 1) * stair.stepRun,
+        baseY + (i + 0.5) * stair.stepRise, stair.firstZ,
+        0.045, stair.stepRise, stair.treadDepth, M.dark);
+
+      for (const zSide of [-sideWallOffset, sideWallOffset]) {
+        box("Schodiště / dolní boční zídka", lowerX, lowerTop + sideWallHeight / 2,
+          stair.firstZ + zSide, stair.stepRun + 0.025, sideWallHeight, 0.10,
+          M.concrete, { collider: true });
+      }
+
+      const upperBottom = baseY + floorHeight / 2;
+      const upperTop = upperBottom + (i + 1) * stair.stepRise;
+      const upperX = stair.highX - (i + 0.5) * stair.stepRun;
+      box("Schodiště / horní nášlap", upperX, upperTop - treadThickness / 2,
+        stair.secondZ, stair.stepRun + 0.025, treadThickness, stair.treadDepth, M.panels);
+      box("Schodiště / horní čelo", stair.highX - (i + 1) * stair.stepRun,
+        upperBottom + (i + 0.5) * stair.stepRise, stair.secondZ,
+        0.045, stair.stepRise, stair.treadDepth, M.dark);
+
+      for (const zSide of [-sideWallOffset, sideWallOffset]) {
+        box("Schodiště / horní boční zídka", upperX, upperTop + sideWallHeight / 2,
+          stair.secondZ + zSide, stair.stepRun + 0.025, sideWallHeight, 0.10,
+          M.concrete, { collider: true });
+      }
     }
-    box("Schodiště / mezipodesta", stair.landingX, baseY + floorHeight / 2 - 0.08, stair.landingZ,
+
+    box("Schodiště / mezipodesta", stair.landingX,
+      baseY + floorHeight / 2 - 0.08, stair.landingZ,
       stair.landingWidth, 0.16, stair.landingDepth, M.concrete);
+
+    // Continuous handrails follow each flight and sit just above the side parapets.
     const railLength = Math.hypot(stair.highX - stair.lowX, floorHeight / 2);
-    box("Schodiště / madlo dolního ramene", (stair.lowX + stair.highX) / 2,
-      baseY + 1.43, stair.firstZ - 0.51, railLength, 0.055, 0.055, M.rail, { rotationZ: angle });
-    box("Schodiště / madlo dolního ramene", (stair.lowX + stair.highX) / 2,
-      baseY + 1.43, stair.firstZ + 0.51, railLength, 0.055, 0.055, M.rail, { rotationZ: angle });
-    box("Schodiště / madlo horního ramene", (stair.lowX + stair.highX) / 2,
-      baseY + 2.83, stair.secondZ - 0.51, railLength, 0.055, 0.055, M.rail, { rotationZ: -angle });
-    box("Schodiště / madlo horního ramene", (stair.lowX + stair.highX) / 2,
-      baseY + 2.83, stair.secondZ + 0.51, railLength, 0.055, 0.055, M.rail, { rotationZ: -angle });
+    const lowerRailY = baseY + floorHeight / 4 + sideWallHeight + 0.10;
+    const upperRailY = baseY + floorHeight * 3 / 4 + sideWallHeight + 0.10;
+    for (const zSide of [-sideWallOffset, sideWallOffset]) {
+      box("Schodiště / madlo dolního ramene",
+        (stair.lowX + stair.highX) / 2, lowerRailY,
+        stair.firstZ + zSide, railLength, 0.055, 0.055,
+        M.rail, { rotationZ: stairAngle });
+      box("Schodiště / madlo horního ramene",
+        (stair.lowX + stair.highX) / 2, upperRailY,
+        stair.secondZ + zSide, railLength, 0.055, 0.055,
+        M.rail, { rotationZ: -stairAngle });
+    }
   }
 
   // Lift shaft and floor doors. The corridor approach stays open and walkable.
