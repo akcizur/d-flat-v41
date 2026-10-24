@@ -41,7 +41,7 @@ export function createWorld(THREE, scene) {
   }
 
   // Sparse outdoor map, matching DFLAT's empty-map / one-building direction.
-  box("Terén", 0, -0.12, -22, 240, 0.24, 240, M.grass);
+  box("Terén", 0, -0.14, -22, 240, 0.24, 240, M.grass);
   box("Hlavní silnice", 0, 0.014, 2.7, 220, 0.04, 8.2, M.asphalt);
   box("Chodník podél silnice", 0, 0.035, -2.05, 220, 0.05, 1.55, M.pavement);
   box("Přístupová cesta", 0, 0.025, -8, 6, 0.04, 10, M.pavement);
