@@ -5,7 +5,9 @@
   "description": "Electron desktop FPS prototype inspired by DFLAT: low-poly exploration of a Czech socialist-era apartment block.",
   "main": "electron/main.cjs",
   "license": "UNLICENSED",
-  "engines": { "node": ">=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "concurrently -k -s first \"vite --host 127.0.0.1\" \"wait-on tcp:5173 && cross-env ELECTRON_RENDERER_URL=http://127.0.0.1:5173 electron .\"",
     "dev:web": "vite --host 127.0.0.1",
@@ -19,7 +21,9 @@
     "dist:linux": "npm run build && electron-builder --linux AppImage",
     "dist:mac": "npm run build && electron-builder --mac dmg"
   },
-  "dependencies": { "three": "0.169.0" },
+  "dependencies": {
+    "three": "0.169.0"
+  },
   "devDependencies": {
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
@@ -32,11 +36,33 @@
     "appId": "cz.akcizur.dflatv41",
     "productName": "D-FLAT V41",
     "asar": true,
-    "directories": { "output": "release" },
-    "files": ["dist/**/*", "electron/**/*", "package.json"],
-    "win": { "target": ["nsis"] },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true },
-    "linux": { "target": ["AppImage"] },
-    "mac": { "target": ["dmg"] }
-  }
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    }
+  },
+  "type": "module"
 }
