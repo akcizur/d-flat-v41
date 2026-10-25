@@ -55,6 +55,8 @@ test("world has two properly divided five-room flats on each of three floors", (
   assert.ok(Math.abs(rightStairSlab.position.z + 23.9) < 1e-9);
 
   assert.ok(scene.children.some(mesh => mesh.name === "Výtah / levá šachta"));
+  assert.equal(world.colliders.filter(collider => collider.name === "Výtah / dveře vlevo").length, 3);
+  assert.equal(world.colliders.filter(collider => collider.name === "Výtah / dveře vpravo").length, 3);
   assert.ok(scene.children.some(mesh => mesh.name === "Byt A / příčka Obývací pokoj–Kuchyň"));
   assert.ok(scene.children.some(mesh => mesh.name === "Byt B / příčka Obývací pokoj–Kuchyň"));
   assert.ok(scene.children.some(mesh => mesh.name === "Byt A / stěna chodby / zárubeň"));
@@ -119,6 +121,12 @@ test("upper floors remain unsupported inside the open stairwell void", () => {
   const { world } = makeWorld();
   assert.equal(world.getSupport(0, -24.3, 2.8), null);
   assert.equal(world.getSupport(0, -24.3, 5.6), null);
+});
+
+test("upper stair support does not extend into empty space beyond the visible treads", () => {
+  const { world } = makeWorld();
+  // At this elevation and position there is no tread or landing mesh to stand on.
+  assert.equal(world.getSupport(0, -22.0, 1.925), null);
 });
 
 test("world collision bounds are finite and ordered", () => {
