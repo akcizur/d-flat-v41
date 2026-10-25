@@ -49,6 +49,7 @@ export function createWorld(THREE, scene) {
       const halfX = (Math.abs(Math.cos(angle)) * sx + Math.abs(Math.sin(angle)) * sy) / 2;
       const halfY = (Math.abs(Math.sin(angle)) * sx + Math.abs(Math.cos(angle)) * sy) / 2;
       colliders.push({
+        name: mesh.name,
         minX: x - halfX, maxX: x + halfX,
         minY: y - halfY, maxY: y + halfY,
         minZ: z - sz / 2, maxZ: z + sz / 2
@@ -369,9 +370,9 @@ export function createWorld(THREE, scene) {
   for (let floor = 0; floor < floorCount; floor++) {
     const y = floor * floorHeight;
     box("Výtah / dveře vlevo", elevator.x - 0.29, y + 1.05, elevator.z + 1.05,
-      0.56, 2.1, 0.055, M.lift);
+      0.56, 2.1, 0.055, M.lift, { collider: true });
     box("Výtah / dveře vpravo", elevator.x + 0.29, y + 1.05, elevator.z + 1.05,
-      0.56, 2.1, 0.055, M.lift);
+      0.56, 2.1, 0.055, M.lift, { collider: true });
     box("Výtah / přivolávací tlačítko", elevator.x + 0.83, y + 1.08, elevator.z + 0.94,
       0.045, 0.19, 0.05, M.paint);
   }
@@ -397,7 +398,9 @@ export function createWorld(THREE, scene) {
 
     const lower = x >= stair.lowX - 0.04 && x <= stair.highX + 0.04 &&
       z >= stair.firstZ - halfTread - 0.04 && z <= stair.firstZ + halfTread + 0.04;
-    const upperFrontEdge = Math.max(stair.secondZ + halfTread, coreOpening.maxZ + 0.29 + 0.12);
+    // Keep support aligned with visible treads; the former extended bounds
+    // created an invisible mid-air walkway across the open stairwell.
+    const upperFrontEdge = stair.secondZ + halfTread;
     const upper = x >= stair.lowX - 0.04 && x <= stair.highX + 0.04 &&
       z >= stair.secondZ - halfTread - 0.04 && z <= upperFrontEdge + 0.04;
 

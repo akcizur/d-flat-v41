@@ -7,7 +7,8 @@ Electron desktop FPS prototype for exploring a quiet Czech/Slovak socialist-era 
 - Electron desktop shell with an isolated, sandboxed renderer and no Node integration in the game window.
 - Compact three-storey, low-poly panel building, about 18 × 12 m, with two mirrored apartments per floor. Each apartment has a living room, kitchen, bedroom, bathroom, WC and its own corridor: 30 rooms total.
 - First-person keyboard movement, mouse look, sprint, jump, camera bob and pause/resume.
-- Shared stair/elevator hall, distinct apartment entrances, corridor doors to every room, collidable room partitions and visible door frames.\n- Central switchback stairs with separate treads, risers, side walls, railings and landings.
+- Shared stair/elevator hall, distinct apartment entrances, corridor doors to every room, collidable room partitions and visible door frames.
+- Central switchback stairs with separate treads, risers, side walls, railings and landings.
 - Small elevator with floor switching using E near the lift.
 - Sparse outdoor map: terrain, road, footpath and an entry platform.
 - Pixel-grid rendering with antialiasing disabled and no full-screen CRT/VHS post-processing.
